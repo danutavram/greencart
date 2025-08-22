@@ -23,7 +23,7 @@ const AllProducts = () => {
         </div>
 
         <div>
-            <div className='grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mt-8'>
+            <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 md:gap-6 lg:grid-cols-5 mt-6'>
                 {filteredProducts.filter((product) =>product.inStock).map((product, index)=>(
                     <ProductCard key={index} product={(product)} />
                 ))}

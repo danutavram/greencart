@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken'
-import User from '../models/User'
 
 // Login Seller: /api/seller/login
 

@@ -2,15 +2,18 @@ import { useEffect, useState } from "react"
 import { useAppContext } from "../context/AppContext"
 import { assets, dummyAddress } from "../assets/assets";
 import toast from "react-hot-toast";
+import { useRef } from "react";
 
 const Cart = () => {
 
-    const{products, currency, cartItems, removeFromCart, getCartCount, updateCartItem, navigate, getCartAmount, axios, user} = useAppContext();
+    const{products, currency, cartItems, removeFromCart, getCartCount, updateCartItem, navigate, getCartAmount, axios, user, setCartItems} = useAppContext();
     const [cartArray, setCartArray] = useState([])
     const [addresses, setAddresses] = useState([])
     const [showAddress, setShowAddress] = useState(false)
     const [selectedAddress, setSelectedAddress] = useState(null)
     const [paymentOption, setPaymentOption] = useState("COD")
+
+     const addressDropdownRef = useRef(null)
 
     const getCart = ()=>{
         let tempArray = []
@@ -39,7 +42,31 @@ const Cart = () => {
     }
 
     const placeOrder = async ()=>{
+        try {
+            if(!selectedAddress){
+                return toast.error("Please select an address!")
+            }
+            
+            
+            // Place Order with COD
+            if(paymentOption === "COD"){
+                const {data} = await axios.post('/api/order/cod', {
+                    userId: user._id,
+                    items: cartArray.map(item=>({product: item._id, quantity: item.quantity})),
+                    address: selectedAddress._id
+                })
 
+                if(data.success){
+                    toast.success(data.message)
+                    setCartItems({})
+                    navigate('/my-orders')
+                }else{
+                    toast.error(data.message)
+                }
+            }
+        } catch (error) {
+            toast.error(error.message)
+        }
     }
 
     useEffect(()=>{
@@ -53,6 +80,24 @@ const Cart = () => {
             getUserAddress()
         }
     }, [user])
+
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (addressDropdownRef.current && !addressDropdownRef.current.contains(e.target)) {
+                setShowAddress(false)
+            }
+        }
+
+        if (showAddress) {
+            document.addEventListener("mousedown", handleClickOutside)
+        } else {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside)
+        }
+    }, [showAddress])
 
 
 
@@ -119,8 +164,10 @@ const Cart = () => {
                             Change
                         </button>
                         {showAddress && (
-                            <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full">
-                               { addresses.map((address, index)=>(<p onClick={() => {setSelectedAddress(address) ; setShowAddress(false)}} className="text-gray-500 p-2 hover:bg-gray-100">
+                            <div className="absolute top-12 py-1 bg-white border border-gray-300 text-sm w-full"
+                            ref={addressDropdownRef}>
+                               { addresses.map((address, index)=>(<p onClick={() => {setSelectedAddress(address) ; setShowAddress(false)}} className="cursor-pointer rounded-md border-gray-200 bg-white p-3 mb-2 shadow-sm transition hover:shadow-md hover:bg-primary-dull/20"
+  >
                                     {address.street}, {address.city}, {address.state}, {address.country}
                                 </p>)) }
                                 <p onClick={() => navigate('/add-address')} className="text-primary text-center cursor-pointer p-2 hover:bg-primary/10">

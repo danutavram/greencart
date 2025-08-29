@@ -11,7 +11,7 @@ export const placeOrderCOD = async(req, res)=>{
         // Calculate Amount Using Items
         let amount = await items.reduce(async(acc, item)=>{
             const product = await Product.findById(item.product)
-            return (await acc) + product.offerPrice * item.quantityn
+            return (await acc) + product.offerPrice * item.quantity
         }, 0)
 
         // Add Tax Charge (2%)
